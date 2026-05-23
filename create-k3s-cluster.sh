@@ -6,7 +6,7 @@ set -euo pipefail
 echo "Creating k3s cluster with 2 nodes (master + 1 worker) using lima..."
 
 echo "Creating master node (k3s-master)..."
-limactl start --name k3s-master \
+limactl start -y --name k3s-master \
   --network lima:user-v2 \
   template:k3s \
   --set ".cpus=1 | .memory=\"2GiB\" | .disk=\"30GiB\""
@@ -24,7 +24,7 @@ URL="https://lima-k3s-master.internal:6443"
 
 
 echo "Creating worker node (k3s-worker)..."
-limactl start --name k3s-worker \
+limactl start -y --name k3s-worker \
   --network lima:user-v2 \
   template:k3s \
   --set ".cpus=2 | .memory=\"4GiB\" | .disk=\"40GiB\" | .param.url=\"$URL\" | .param.token=\"$TOKEN\""

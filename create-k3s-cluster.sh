@@ -29,7 +29,18 @@ limactl start -y --name k3s-worker \
   template:k3s \
   --set ".cpus=2 | .memory=\"4GiB\" | .disk=\"40GiB\" | .param.url=\"$URL\" | .param.token=\"$TOKEN\""
 
-export KUBECONFIG=$(limactl list k3s-master --format 'unix://{{.Dir}}/copied-from-guest/kubeconfig.yaml')
+# Extract the kubeconfig from the master node and merge it with the existing kubeconfig if it exists
+KUBECONFIG_PATH=$(limactl list k3s-master --format '{{.Dir}}/copied-from-guest/kubeconfig.yaml')
+
+mkdir -p ~/.kube
+
+if [ -f ~/.kube/config ]; then
+  export KUBECONFIG="$HOME/.kube/config:$KUBECONFIG_PATH"
+  kubectl config view --flatten > /tmp/kubeconfig
+  mv /tmp/kubeconfig ~/.kube/config
+else
+  cp "$KUBECONFIG_PATH" ~/.kube/config
+fi
 
 kubectl get nodes
 

@@ -42,6 +42,9 @@ else
   cp "$KUBECONFIG_PATH" ~/.kube/config
 fi
 
+kubectl config rename-context default lima-k3s || true
+kubectl config use-context lima-k3s
+
 kubectl get nodes
 
 echo "k3s cluster created successfully!"

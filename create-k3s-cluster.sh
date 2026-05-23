@@ -11,7 +11,15 @@ limactl start --name k3s-master \
   template:k3s \
   --set ".cpus=1 | .memory=\"2GiB\" | .disk=\"30GiB\""
 
-TOKEN=$(limactl shell k3s-master sudo cat /var/lib/rancher/k3s/server/node-token)
+
+# Wait for the master node to be ready and the node token to be generated
+until limactl shell k3s-master -- sudo test -f /var/lib/rancher/k3s/server/node-token; do
+  sleep 0.5
+done
+
+sleep 1 # Ensure the token file is fully written
+
+TOKEN=$(limactl shell k3s-master -- sudo cat /var/lib/rancher/k3s/server/node-token)
 URL="https://lima-k3s-master.internal:6443"
 
 

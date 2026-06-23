@@ -31,18 +31,20 @@ limactl start -y --name k3s-worker \
 
 # Extract the kubeconfig from the master node and merge it with the existing kubeconfig if it exists
 KUBECONFIG_PATH=$(limactl list k3s-master --format '{{.Dir}}/copied-from-guest/kubeconfig.yaml')
+until [ -s "$KUBECONFIG_PATH" ]; do sleep 1; done
 
 mkdir -p ~/.kube
+for entry in lima-k3s default; do
+  kubectl config delete-context "$entry" 2>/dev/null || true
+  kubectl config delete-cluster "$entry"  2>/dev/null || true
+  kubectl config delete-user "$entry"     2>/dev/null || true
+done
 
-if [ -f ~/.kube/config ]; then
-  export KUBECONFIG="$HOME/.kube/config:$KUBECONFIG_PATH"
-  kubectl config view --flatten > /tmp/kubeconfig
-  mv /tmp/kubeconfig ~/.kube/config
-else
-  cp "$KUBECONFIG_PATH" ~/.kube/config
-fi
+KUBECONFIG="$HOME/.kube/config:$KUBECONFIG_PATH" kubectl config view --flatten > /tmp/kubeconfig-merged
+mv /tmp/kubeconfig-merged ~/.kube/config
+chmod 600 ~/.kube/config
 
-kubectl config rename-context default lima-k3s || true
+kubectl config rename-context default lima-k3s 2>/dev/null || true
 kubectl config use-context lima-k3s
 
 kubectl get nodes

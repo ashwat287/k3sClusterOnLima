@@ -34,13 +34,13 @@ The script:
 1. Starts `k3s-master`
 2. Reads the cluster join token from master
 3. Starts `k3s-worker` and joins it to master
-4. Exports `KUBECONFIG` for the master kubeconfig path (for the current shell process)
-5. Runs `kubectl get nodes`
+4. Merges the master kubeconfig into `~/.kube/config`, removing or replacing any conflicting `default` entries
+5. Switches `kubectl` to the `lima-k3s` context and runs `kubectl get nodes`
 
 If you want `KUBECONFIG` in your current interactive shell, run:
 
 ```bash
-export KUBECONFIG="$(limactl list k3s-master --format '{{.Dir}}/copied-from-guest/kubeconfig.yaml')"
+export KUBECONFIG="$HOME/.kube/config"
 kubectl get nodes -o wide
 ```
 
